@@ -9,17 +9,20 @@ $arquivos = [
 	"ago-22.txt", "ago-23.txt", "ago-24.txt", "ago-25.txt",
 	"ago-26.txt", "ago-29.txt", "ago-30.txt", "ago-31.txt",
 	"set-1.txt", "set-2.txt", "set-5.txt", "set-6.txt", 
-	"set-8.txt", "set-9.txt"
+	"set-8.txt", "set-9.txt", "set-12.txt"
 ];
-$gerar = true;
+$gerar = false;
 
 $dirArquivos = "database/";
 $dirOutput = "output/";
 
 $contratos = 1;
-$testeGanho = [2];
-$testePerda = [10];
-$testeAcumu = [30];
+$testeGanho = [2]; // 4
+$testePerda = [50]; // 40
+$testeAcumu = [40]; // 30
+
+$maxPerdaDiaPts = 200; // 150
+$triggerMaxPerdaAt = 1000;
 
 $geralVendas = 0;
 $geralCompras = 0;
@@ -52,53 +55,90 @@ foreach ($arquivos as $arq){
 				$compras = [];
 				$vendas = [];
 
-				foreach ($dados as $preco) {
+				foreach ($dados as $min => $preco) {
 
 					if($ultimoPreco > 0){
 
 						// 1 alta, 1 baixa, 0 neutra
-						$fator = $ultimoPreco < $preco ? 1 : -1;
-						$fator = $ultimoPreco == $preco ? 0 : $fator;
+						$fator = 0;
+						$fator = $ultimoPreco < $preco ? +1 : $fator;
+						$fator = $ultimoPreco > $preco ? -1 : $fator;
 
 						if($fator < 0) $tendencia--;
 						else if($fator > 0) $tendencia++;
 						else $tendencia = 0;
 
-						foreach($compras as $k=> $c){
-							if(
-								$c->venda == 0 &&  (
-									$preco - $ganho >= $c->compra || 
-									$preco + $perda <= $c->compra
-								)
-							){
-								$compras[$k]->venda = $preco;
-								$comprasVazias -= $c->multiplo;
+						$partialC = calcular($compras, $preco);
+						$partialV = calcular($vendas, $preco);
+
+						// echo "$min	$tendencia	$preco	$partialC	$partialV\n";
+
+						if(
+								$partialC > -$maxPerdaDiaPts &&
+								$min <= $triggerMaxPerdaAt
+						){
+							foreach($compras as $k=> $c){
+								if(
+									$c->venda == 0 && (
+										$preco - $ganho >= $c->compra || 
+										$preco + $perda <= $c->compra
+									)
+								){
+									$compras[$k]->venda = $preco;
+									$comprasVazias -= $c->multiplo;
+								}
+							}
+
+							$multiploC = $tendencia > 0 ?
+								($tendencia * 2) + 1 : 0;
+
+							if($multiploC > 0 && $comprasVazias < $acumulo){
+								$compras[] = new Operacao($preco, 0, $multiploC, $tendencia);
+								$comprasVazias += $multiploC;
 							}
 						}
-						foreach($vendas as $k=> $v){
-							if(
-								$v->compra == 0 &&  (
-									$preco + $ganho <= $v->venda || 
-									$preco - $perda >= $v->venda
-								)
-							){
-								$vendas[$k]->compra = $preco;
-								$vendasVazias -= $v->multiplo;
+						else {
+							foreach($compras as $k=> $c){
+								if($c->venda == 0 ){
+									$compras[$k]->venda = $preco;
+									$comprasVazias -= $c->multiplo;
+								}
 							}
 						}
 
-						$multiploC = ($tendencia * 2) + 1;
-						$multiploV = ($tendencia * 2) - 1;
 
-						if($multiploC > 0 && $comprasVazias < $acumulo){
-							$compras[] = new Operacao($preco, 0, $multiploC, $tendencia);
-							$comprasVazias += $multiploC;
+						if(
+								$partialV > -$maxPerdaDiaPts && 
+								$min <= $triggerMaxPerdaAt
+						){
+							foreach($vendas as $k=> $v){
+								if(
+									$v->compra == 0 &&  (
+										$preco + $ganho <= $v->venda || 
+										$preco - $perda >= $v->venda
+									)
+								){
+									$vendas[$k]->compra = $preco;
+									$vendasVazias -= $v->multiplo;
+								}
+							}
+
+							$multiploV = $tendencia < 0 ?
+								($tendencia * 2) - 1 : 0;
+
+							if($multiploV < 0 && $vendasVazias < $acumulo){
+								$multiploV = abs($multiploV);
+								$vendas[] = new Operacao(0, $preco, $multiploV, $tendencia);
+								$vendasVazias += $multiploV;
+							}
 						}
-
-						if($multiploV < 0 && $vendasVazias < $acumulo){
-							$multiploV = abs($multiploV);
-							$vendas[] = new Operacao(0, $preco, $multiploV, $tendencia);
-							$vendasVazias += $multiploV;
+						else {
+							foreach($vendas as $k=> $v){
+								if($v->compra == 0){
+									$vendas[$k]->compra = $preco;
+									$vendasVazias -= $v->multiplo;
+								}
+							}
 						}
 					}
 					else {
