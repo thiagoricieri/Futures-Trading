@@ -11,7 +11,7 @@ include_once("lib/includes.php");
 $gerarArquivos = true;
 $testeGanho = [0.5];
 $testePerda = [50];
-$testeAcumu = [50];
+$testeAcumu = [30];
 
 // -------
 // SCRIPT
@@ -74,14 +74,14 @@ foreach ($arquivos as $arq){
 
 						if(
 								$partialC > -MAX_PERDA_DIA_PTS &&
-								$min <= MAX_PERDA_DIA_TRIGGER 
+								$min <= MAX_PERDA_DIA_TRIGGER
 						){
 							foreach($compras as $k=> $c){
 								if(
 									$c->venda == 0 && (
-										$preco - $ganho >= $c->compra || 
+										$preco - $ganho >= $c->compra ||
 										(
-											$preco + $perda <= $c->compra && 
+											$preco + $perda <= $c->compra &&
 											$c->indexInicio + ANCORAGEM <= $min
 										)
 									)
@@ -115,15 +115,15 @@ foreach ($arquivos as $arq){
 
 
 						if(
-								$partialV > -MAX_PERDA_DIA_PTS && 
+								$partialV > -MAX_PERDA_DIA_PTS &&
 								$min <= MAX_PERDA_DIA_TRIGGER
 						){
 							foreach($vendas as $k=> $v){
 								if(
 									$v->compra == 0  && (
-										$preco + $ganho <= $v->venda || 
+										$preco + $ganho <= $v->venda ||
 										(
-											$preco - $perda >= $v->venda && 
+											$preco - $perda >= $v->venda &&
 											$v->indexInicio + ANCORAGEM <= $min
 										)
 									)
@@ -189,7 +189,7 @@ foreach ($arquivos as $arq){
 				echo "RESULTADO $arq ($ganho, $perda, $acumulo)\n";
 				echo "--> Alta (XP): $somaCompras ($cne negocios)\n";
 				echo "--> Baixa (Rico): $somaVendas ($vne negocios)\n";
-				echo "--> Tendencia do dia: $tabs = " . 
+				echo "--> Tendencia do dia: $tabs = " .
 					($tabs > BOUNDS_TREND ? "+ Alta" : ($tabs < -BOUNDS_TREND ? "- Baixa" : ".. Neutra")) . "\n";
 				echo "    --------------\n";
 				echo "    " .($somaCompras + $somaVendas). " = R$ $lucro\n";
