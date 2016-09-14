@@ -4,13 +4,11 @@ include_once("lib/lib2.php");
 include_once("lib/Operacao.php");
 include_once("lib/includes.php");
 
-$arquivos = ["set-12.txt"];
-
 // --------
 // CONFIG
 // --------
 
-$encerrarOperacao = true;
+$gerarArquivos = true;
 $testeGanho = [0.5];
 $testePerda = [50];
 $testeAcumu = [50];
@@ -22,13 +20,17 @@ $testeAcumu = [50];
 $geralVendas = 0;
 $geralCompras = 0;
 
+remove_arquivos_output(DIR_OUTPUT);
+
 foreach ($arquivos as $arq){
+	$outputArq = str_replace(".txt", "", $arq);
 
 	foreach($testeGanho as $ganho){
 		foreach($testePerda as $perda){
 			foreach ($testeAcumu as $acumulo) {
 
 				$dados = read_data(DIR_ARQUIVOS . $arq);
+				// $dados = array_slice($dados, 36);
 
 				$ultimoPreco = 0;
 				$ultimaTendencia = 0;
@@ -37,20 +39,14 @@ foreach ($arquivos as $arq){
 				$comprasVazias = 1;
 				$vendasVazias = 1;
 
-				$ordens = [];
 				$compras = [];
 				$vendas = [];
 				$tempsrc = [];
 
-				$is_ultimo = false;
-				$ultimaCompraXp = 0;
-				$ultimaVendaXp = 0;
-				$ultimaCompraRico = 0;
-				$ultimaVendaRico = 0;
-
-				foreach ($dados as $k=> $preco) {
+				foreach ($dados as $min => $preco) {
 					$tempsrc[] = $preco;
-					$is_ultimo = $k == count($dados) - 1;
+					$more = (3 - ceil($min/48)) * 0.5;
+					// $ganho = $ganho2 + $more;
 
 					if($ultimoPreco > 0){
 
@@ -72,6 +68,10 @@ foreach ($arquivos as $arq){
 						$partialC = calcular($compras, $preco);
 						$partialV = calcular($vendas, $preco);
 
+						$media3 = media_movel($tempsrc, 2);
+						$media21 = media_movel($tempsrc, 12);
+						$boost = 0;//ceil(($media3 - $media21)/4);
+
 						if(
 								$partialC > -MAX_PERDA_DIA_PTS &&
 								$min <= MAX_PERDA_DIA_TRIGGER 
@@ -89,9 +89,6 @@ foreach ($arquivos as $arq){
 									$compras[$k]->venda = $preco;
 									$compras[$k]->indexFim = $min;
 									$comprasVazias -= $c->multiplo;
-
-									if($is_ultimo)
-										$ultimaVendaXp += $c->multiplo;
 								}
 							}
 
@@ -101,12 +98,9 @@ foreach ($arquivos as $arq){
 
 							if($multiploC > 0 && $comprasVazias < $acumulo){
 								$oper = new Operacao($preco, 0, $multiploC, $tabs);
-								$oper->indexInicio = $preco;
+								$oper->indexInicio = $min;
 								$compras[] = $oper;
 								$comprasVazias += $multiploC;
-
-								if($is_ultimo)
-									$ultimaCompraXp += $multiploC;
 							}
 						}
 						else {
@@ -115,9 +109,6 @@ foreach ($arquivos as $arq){
 									$compras[$k]->venda = $preco;
 									$compras[$k]->indexFim = $min;
 									$comprasVazias -= $c->multiplo;
-
-									if($is_ultimo)
-										$ultimaVendaXp += $c->multiplo;
 								}
 							}
 						}
@@ -138,11 +129,8 @@ foreach ($arquivos as $arq){
 									)
 								){
 									$vendas[$k]->compra = $preco;
-									$vendas[$k]->indexInicio = $min;
+									$vendas[$k]->indexFim = $min;
 									$vendasVazias -= $v->multiplo;
-
-									if($is_ultimo)
-										$ultimaCompraRico += $v->multiplo;
 								}
 							}
 
@@ -156,9 +144,6 @@ foreach ($arquivos as $arq){
 								$oper->indexInicio = $min;
 								$vendas[] = $oper;
 								$vendasVazias += $multiploV;
-
-								if($is_ultimo)
-									$ultimaVendaRico += $multiploV;
 							}
 						}
 						else {
@@ -167,25 +152,7 @@ foreach ($arquivos as $arq){
 									$vendas[$k]->compra = $preco;
 									$vendas[$k]->indexFim = $min;
 									$vendasVazias -= $v->multiplo;
-
-									if($is_ultimo)
-										$ultimaCompraRico += $v->multiplo;
 								}
-							}
-						}
-
-						if($is_ultimo){
-							if($ultimaVendaXp > 0){
-								$ordens[] = "- Venda $ultimaVendaXp cts na XP a $preco pts;";
-							}
-							if($ultimaVendaRico > 0){
-								$ordens[] = "- Venda $ultimaVendaRico cts na Rico a $preco pts;";
-							}
-							if($ultimaCompraXp > 0){
-								$ordens[] = "- Compre $ultimaCompraXp cts na XP a $preco pts;";
-							}
-							if($ultimaCompraRico > 0){
-								$ordens[] = "- Compre $ultimaCompraRico cts na Rico a $preco pts;";
 							}
 						}
 					}
@@ -201,67 +168,53 @@ foreach ($arquivos as $arq){
 				// OUTPUT
 				// -----------
 
-				$fecharOperacao = $encerrarOperacao ? $ultimoPreco : 0;
+				$dirout = DIR_OUTPUT . $outputArq . "-g$ganho-p$perda-a$acumulo";
+				$outputCompras = "$dirout-compras.csv";
+				$outputVendas = "$dirout-vendas.csv";
 
-				$somaCompras = calcular($compras, $fecharOperacao, $encerrarOperacao);
-				$somaVendas = calcular($vendas, $fecharOperacao, $encerrarOperacao);
+				$somaCompras = calcular($compras, $ultimoPreco);
+				$somaVendas = calcular($vendas, $ultimoPreco);
 
-				$somaVendas = 0;
-				$somaCompras = 0;
-				$ctsVendas = 0;
-				$ctsCompras = 0;
-				$abeCompras = 0;
-				$abeVendas = 0;
-
-				echo "\n\n";
-				echo "        XP\n";
-				echo "--------------------\n";
-				echo "COMPRA	CTS	VENDA\n";
-				foreach ($compras as $c){
-					echo "$c->compra	x $c->multiplo	$c->venda\n";
-					if($c->venda > 0){
-						$somaCompras += $c->diferenca();
-						$ctsCompras += $c->multiplo;
-					}
-					else {
-						$abeCompras += $c->multiplo;
-					}
+				if($gerarArquivos){
+					$somaCompras = write_oper_file($outputCompras, $compras, $ultimoPreco);
+					$somaVendas = write_oper_file($outputVendas, $vendas, $ultimoPreco);
 				}
-				echo "--------------------\n";
-				echo "Fechados: $ctsCompras cts ($somaCompras pts)\n";
-				echo "Abertos: $abeCompras cts (lim. $acumulo)\n";
-				echo "\n\n";
 
-				echo "       RICO";
-				echo "\n--------------------\n";
-				echo "VENDA	CTS	COMPRA\n";
-				foreach($vendas as $v){
-					echo "$v->venda	x $v->multiplo	$v->compra\n";
-					if($v->compra > 0){
-						$somaVendas += $v->diferenca();
-						$ctsVendas += $v->multiplo;
-					}
-					else {
-						$abeVendas += $v->multiplo;
-					}
-				}
-				echo "--------------------\n";
-				echo "Fechados: $ctsVendas cts ($somaVendas pts)\n";
-				echo "Abertos: $abeVendas cts (lim. $acumulo)\n";
-				echo "\n\n";
+				$cne = count($compras);
+				$vne = count($vendas);
+				$lucro = money(($somaCompras + $somaVendas) * CONTRATOS * 10);
+				$tabs = tendencia_absoluta($dados);
 
-				echo "       TOTAL ($ultimoPreco)\n";
-				echo "--------------------\n";
-				echo "Resultado: " .pts($somaVendas + $somaCompras). " pts\n";
-				echo "\n\n";
+				echo "\n";
+				echo "RESULTADO $arq ($ganho, $perda, $acumulo)\n";
+				echo "--> Alta (XP): $somaCompras ($cne negocios)\n";
+				echo "--> Baixa (Rico): $somaVendas ($vne negocios)\n";
+				echo "--> Tendencia do dia: $tabs = " . 
+					($tabs > BOUNDS_TREND ? "+ Alta" : ($tabs < -BOUNDS_TREND ? "- Baixa" : ".. Neutra")) . "\n";
+				echo "    --------------\n";
+				echo "    " .($somaCompras + $somaVendas). " = R$ $lucro\n";
+				echo "\n";
 
-				echo "     ORDENS ($tendencia)";
-				echo "\n--------------------\n";
-				foreach($ordens as $ordem){
-					echo $ordem . "\n";
-				}
-				echo "\n\n";
+				$geralCompras += $somaCompras;
+				$geralVendas += $somaVendas;
 			}
 		}
 	}
 }
+
+// -----------
+// OUTPUT
+// -----------
+
+$dias = count($arquivos);
+$geralResult = $geralVendas + $geralCompras;
+$geralMedia = pts($geralResult / $dias);
+$geralLucro = money($geralResult * CONTRATOS * 10);
+
+echo "====================\n";
+echo "GERAL \n";
+echo "--> Alta (XP): $geralCompras\n";
+echo "--> Baixa (Rico): $geralVendas\n";
+echo "    -------------\n";
+echo "    $geralResult ($geralMedia em $dias) = R$ $geralLucro\n";
+echo "\n";

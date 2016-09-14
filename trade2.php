@@ -1,15 +1,17 @@
 <?php
 
-include_once("lib2.php");
+include_once("lib/Operacao.php");
+include_once("lib/lib2.php");
 
 define("C", "C");
 define("V", "V");
 
 $arquivos = [
+	"ago-19.txt",
 	"ago-22.txt", "ago-23.txt", "ago-24.txt", "ago-25.txt",
 	"ago-26.txt", "ago-29.txt", "ago-30.txt", "ago-31.txt",
 	"set-1.txt", "set-2.txt", "set-5.txt", "set-6.txt", 
-	"set-8.txt", "set-9.txt", "set-12.txt"
+	"set-8.txt", "set-9.txt", "set-12.txt", "set-13.txt"
 ];
 $gerar = false;
 
@@ -17,11 +19,11 @@ $dirArquivos = "database/";
 $dirOutput = "output/";
 
 $contratos = 1;
-$testeGanho = [2]; // 4
-$testePerda = [50]; // 40
-$testeAcumu = [40]; // 30
+$testeGanho = [2];
+$testePerda = [20];
+$testeAcumu = [40];
 
-$maxPerdaDiaPts = 200; // 150
+$maxPerdaDiaPts = 200;
 $triggerMaxPerdaAt = 1000;
 
 $geralVendas = 0;
@@ -29,11 +31,7 @@ $geralCompras = 0;
 
 $margem = -1;
 
-$files = glob($dirOutput . "*");
-foreach($files as $file){
-	if(is_file($file))
-		unlink($file);
-}
+remove_arquivos_output($dirOutput);
 
 foreach ($arquivos as $arq){
 	$outputArq = str_replace(".txt", "", $arq);
