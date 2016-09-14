@@ -4,13 +4,13 @@ include_once("lib/lib2.php");
 include_once("lib/Operacao.php");
 include_once("lib/includes.php");
 
-$arquivos = ["set-12.txt"];
+$arquivos = ["hoje.txt"];
 
 // --------
 // CONFIG
 // --------
 
-$encerrarOperacao = true;
+$encerrarOperacao = false;
 $testeGanho = [0.5];
 $testePerda = [50];
 $testeAcumu = [30];
@@ -176,16 +176,16 @@ foreach ($arquivos as $arq){
 
 						if($is_ultimo){
 							if($ultimaVendaXp > 0){
-								$ordens[] = "- Venda $ultimaVendaXp cts na XP a $preco pts;";
+								$ordens[] = "- Venda $ultimaVendaXp cts na Rico a $preco pts;";
 							}
 							if($ultimaVendaRico > 0){
-								$ordens[] = "- Venda $ultimaVendaRico cts na Rico a $preco pts;";
+								$ordens[] = "- Venda $ultimaVendaRico cts na XP a $preco pts;";
 							}
 							if($ultimaCompraXp > 0){
-								$ordens[] = "- Compre $ultimaCompraXp cts na XP a $preco pts;";
+								$ordens[] = "- Compre $ultimaCompraXp cts na Rico a $preco pts;";
 							}
 							if($ultimaCompraRico > 0){
-								$ordens[] = "- Compre $ultimaCompraRico cts na Rico a $preco pts;";
+								$ordens[] = "- Compre $ultimaCompraRico cts na XP a $preco pts;";
 							}
 						}
 					}
@@ -214,7 +214,7 @@ foreach ($arquivos as $arq){
 				$abeVendas = 0;
 
 				echo "\n\n";
-				echo "        XP\n";
+				echo "        RICO\n";
 				echo "--------------------\n";
 				echo "COMPRA	CTS	VENDA\n";
 				foreach ($compras as $c){
@@ -232,7 +232,7 @@ foreach ($arquivos as $arq){
 				echo "Abertos: $abeCompras cts (lim. $acumulo)\n";
 				echo "\n\n";
 
-				echo "       RICO";
+				echo "       XP";
 				echo "\n--------------------\n";
 				echo "VENDA	CTS	COMPRA\n";
 				foreach($vendas as $v){
