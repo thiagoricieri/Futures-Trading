@@ -4,7 +4,7 @@ define("C", "C");
 define("V", "V");
 
 define("CONTRATOS", 1);
-define("DIR_ARQUIVOS", "database/");
+define("DIR_ARQUIVOS", "mini-dolar/");
 define("DIR_OUTPUT", "output/");
 define("MAX_PERDA_DIA_PTS", 400);
 define("MAX_PERDA_DIA_TRIGGER", 1000);
