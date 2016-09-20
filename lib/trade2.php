@@ -157,9 +157,9 @@ foreach ($arquivos as $arq){
 					$outputArq . 
 					"-g$ganho-p$perda-a$acumulo-vendas.csv";
 
-				$somaCompras = write_oper_file(
+				$somaCompras = gravarOperacaoNoArquivo(
 					$outputCompras, $compras, $ultimoPreco, $gerar);
-				$somaVendas = write_oper_file(
+				$somaVendas = gravarOperacaoNoArquivo(
 					$outputVendas, $vendas, $ultimoPreco, $gerar);
 
 				$cne = count($compras);

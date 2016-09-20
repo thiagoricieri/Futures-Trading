@@ -28,7 +28,7 @@ foreach ($arquivos as $arq){
 		foreach($testePerda as $perda){
 			foreach ($testeAcumu as $acumulo) {
 
-				$dados = read_data(DIR_ARQUIVOS . $arq);
+				$dados = lerDados(DIR_ARQUIVOS . $arq);
 
 				$ultimoPreco = 0;
 				$ultimaTendencia = 0;
@@ -64,7 +64,7 @@ foreach ($arquivos as $arq){
 						else if($fator > 0) $tendencia++;
 						else $tendencia = 0;
 
-						$tabs = $preco - $ultimoPreco;//tendencia_absoluta($tempsrc);
+						$tabs = $preco - $ultimoPreco;//tendenciaAbsoluta($tempsrc);
 						$forca = ceil($tabs / BOUNDS_TREND);
 						// echo ($tabs > 2 ? "+ Alta" : ($tabs < -2 ? "- Baixa" : ". Neu")) . "	$tabs\n";
 						$ultimaTendencia = $tabs;

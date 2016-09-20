@@ -7,7 +7,7 @@ function media_movel($src, $steps){
 	return $sum / count($slice);
 }
 
-function tendencia_absoluta($src){
+function tendenciaAbsoluta($src){
 	$l = $src[0];
 	$fator = 0;
 	foreach($src as $i){
@@ -21,12 +21,12 @@ function tendencia_absoluta($src){
 function tendencia_relativa($src, $oper){
 	if($oper->indexInicio + 4 <= count($src) - $oper->indexInicio){
 		$slice = array_slice($src, $oper->indexInicio);
-		return tendencia_absoluta($slice);
+		return tendenciaAbsoluta($slice);
 	}
 	return 0;
 }
 
-function remove_arquivos_output($dirOutput){
+function removeArquivosOutput($dirOutput){
 	$files = glob($dirOutput . "*");
 	foreach($files as $file){
 		if(is_file($file))
@@ -42,7 +42,7 @@ function pts($float){
 	return number_format($float, 1, ",", ".");
 }
 
-function read_data($file){
+function lerDados($file){
 	$prices = file($file);
 	$output = [];
 
@@ -73,7 +73,7 @@ function calcular($arr, $zerar=200, $encerrar=false){
 	return $soma;
 }
 
-function write_oper_file($file, $arr, $zerar=200){
+function gravarOperacaoNoArquivo($file, $arr, $zerar=200){
 
 	$output = ["\"Compra\",\"Venda\",\"Mult\",\"Dif\",\"Tend\""];
 	$soma = 0;

@@ -5,6 +5,7 @@ class Printable {
     // Config
     var $colnum = 20;
     var $divisor = "-";
+    var $linha = "\n\n";
 
     // Utils
     function strDivisor($d = null){
@@ -16,5 +17,8 @@ class Printable {
         $space = " ";
         $half = ceil($this->colnum/2 - $len/2);
         return str_repeat($space, $half) . $str;
+    }
+    function pularLinha(){
+        return $this->linha;
     }
 }

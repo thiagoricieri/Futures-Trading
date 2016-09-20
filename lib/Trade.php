@@ -4,8 +4,8 @@ require_once("Print.php");
 
 class Trade extends Printable {
 
-    const ALTA = "alta";
-    const BAIXA = "baixa";
+    const ALTA = "Alta";
+    const BAIXA = "Baixa";
 
     var $ativo = "";
     var $conta = "";
@@ -35,6 +35,7 @@ class Trade extends Printable {
     }
 
     function posicionar($preco, $qtd = 1){
+        $qtd *= $this->alavancagem;
         if($this->estrategia == self::ALTA){
             $this->operacoes[] = new Operacao($preco, 0, $qtd);
         } else {
@@ -189,7 +190,19 @@ class Trade extends Printable {
             "VENDA"
         );
 
-        foreach($this->operacoes as $oper){
+        foreach($this->operacoes as $k => $oper){
+            if($fechamento > 0){
+                if($oper->venda > 0) $venda = $oper->venda;
+                else $venda = $fechamento;
+
+                if($oper->compra > 0) $compra = $oper->compra;
+                else $compra = $fechamento;
+
+                $oper->venda = $venda;
+                $oper->compra = $compra;
+
+                $somaFechamento += ($venda - $compra) * $oper->multiplo;
+            }
             $r[] = $this->grade(
                 $oper->multiplo,
                 $oper->compra,
@@ -201,16 +214,6 @@ class Trade extends Printable {
             }
             else {
                 $abertos += $oper->multiplo;
-            }
-            // Simulacao
-            if($fechamento > 0){
-                if($oper->venda > 0) $venda = $oper->venda;
-                else $venda = $fechamento;
-
-                if($oper->compra > 0) $compra = $oper->compra;
-                else $compra = $fechamento;
-
-                $somaFechamento += ($venda - $compra) * $oper->multiplo;
             }
         }
 
@@ -228,7 +231,6 @@ class Trade extends Printable {
             $r[] = "Saldo parcial: " . pts($somaFechamento) . " pts";
             $this->saldoParcial = $somaFechamento;
         }
-        $r[] = "\n";
 
         return implode("\n", $r);
     }

@@ -8,7 +8,7 @@ include_once("lib/includes.php");
 // CONFIG
 // --------
 
-$gerarArquivos = true;
+$gerarArquivos = false;
 $testeGanho = [0.5];
 $testePerda = [50];
 $testeAcumu = [5];
@@ -20,7 +20,7 @@ $testeAcumu = [5];
 $geralVendas = 0;
 $geralCompras = 0;
 
-remove_arquivos_output(DIR_OUTPUT);
+removeArquivosOutput(DIR_OUTPUT);
 
 foreach ($arquivos as $arq){
 	$outputArq = str_replace(".txt", "", $arq);
@@ -29,7 +29,7 @@ foreach ($arquivos as $arq){
 		foreach($testePerda as $perda){
 			foreach ($testeAcumu as $acumulo) {
 
-				$dados = read_data(DIR_ARQUIVOS . $arq);
+				$dados = lerDados(DIR_ARQUIVOS . $arq);
 				// $dados = array_slice($dados, 30);
 
 				$ultimoPreco = 0;
@@ -60,8 +60,8 @@ foreach ($arquivos as $arq){
 						else if($fator > 0) $tendencia++;
 						else $tendencia = 0;
 
-						$tabs = $preco - $ultimoPreco;//tendencia_absoluta($tempsrc);
-						$forca = ceil($tabs / BOUNDS_TREND);
+						$tabs = $preco - $ultimoPreco;//tendenciaAbsoluta($tempsrc);
+						$forca = ceil($tabs / 4);
 						// echo ($tabs > 2 ? "+ Alta" : ($tabs < -2 ? "- Baixa" : ". Neu")) . "	$tabs\n";
 						$ultimaTendencia = $tabs;
 
@@ -92,9 +92,9 @@ foreach ($arquivos as $arq){
 								}
 							}
 
-							$m = $tabs < -BOUNDS_TREND ? ceil(abs($tabs)) : 1;
+							$m = $forca < -4 ? ceil(abs($forca)) : 1;
 							$multiploC = $tendencia > 0 ?
-								($tendencia * 2) + 1 + $m - $boost : 1;
+								($tendencia * 2) + 1 + $m : 1;
 
 							if($multiploC > 0 && $comprasVazias < $acumulo){
 								$oper = new Operacao($preco, 0, $multiploC, $tabs);
@@ -134,9 +134,9 @@ foreach ($arquivos as $arq){
 								}
 							}
 
-							$m = $forca > BOUNDS_TREND ? ceil($tabs) : 1;
+							$m = $forca > 4 ? ceil($forca) : 1;
 							$multiploV = $tendencia < 0 ?
-								($tendencia * 2) - 1 - $m + $boost: 1;
+								($tendencia * 2) - 1 - $m: 1;
 
 							if($multiploV < 0 && $vendasVazias < $acumulo){
 								$multiploV = abs($multiploV);
@@ -176,14 +176,14 @@ foreach ($arquivos as $arq){
 				$somaVendas = calcular($vendas, $ultimoPreco);
 
 				if($gerarArquivos){
-					$somaCompras = write_oper_file($outputCompras, $compras, $ultimoPreco);
-					$somaVendas = write_oper_file($outputVendas, $vendas, $ultimoPreco);
+					$somaCompras = gravarOperacaoNoArquivo($outputCompras, $compras, $ultimoPreco);
+					$somaVendas = gravarOperacaoNoArquivo($outputVendas, $vendas, $ultimoPreco);
 				}
 
 				$cne = count($compras);
 				$vne = count($vendas);
 				$lucro = money(($somaCompras + $somaVendas) * CONTRATOS * 10);
-				$tabs = tendencia_absoluta($dados);
+				$tabs = tendenciaAbsoluta($dados);
 
 				echo "\n";
 				echo "RESULTADO $arq ($ganho, $perda, $acumulo)\n";
