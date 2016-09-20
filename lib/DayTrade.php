@@ -77,7 +77,7 @@ class DayTrade extends Printable {
 
     function investir(){
         foreach ($this->dados as $min => $preco) {
-            $this->ultimaOperacao = $k == count($dados) - 1;
+            $this->ultimaOperacao = $min == count($this->dados) - 1;
 
             $regra = new Regra();
             $regra->ganho = $this->minGanho;
@@ -118,12 +118,14 @@ class DayTrade extends Printable {
     function pegaOrdemDo($trade, $preco){
         foreach($this->ordensGeradas as $ordem){
             if($ordem->ativo == $trade->ativo && $ordem->estrategia == $trade->estrategia){
+                $ordem->precoAtual = $preco;
                 return $ordem;
             }
         }
         $ordem = new Ordem($trade->ativo, $trade->conta, $preco);
         $ordem->operarNa($trade->estrategia);
-        if($this->usandoTabelas){
+
+        if(!$this->usandoTendencias){
             $this->ordensGeradas[] = $ordem;
         }
         return $ordem;
@@ -175,7 +177,7 @@ class DayTrade extends Printable {
         $this->lucroRs = $saldos * $this->fatorLucro;
 
         $r[] = $this->strDivisor();
-        $r[] = "Resultado:  " .pts($this->lucroPts). " pts";
+        $r[] = "Resultado:  Pts " .pts($this->lucroPts);
         $r[] = "Lucro:      R$ " . money($this->lucroRs);
 
         if(!$this->usandoTendencias){
