@@ -1,6 +1,6 @@
 <?php
 
-include_once("lib/lib2.php");
+include_once("lib/functions.php");
 include_once("lib/Esquema.php");
 
 $esquema = new Esquema();

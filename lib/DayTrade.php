@@ -1,6 +1,6 @@
 <?php
 
-require_once("Print.php");
+require_once("Printable.php");
 require_once("Trade.php");
 require_once("Ordem.php");
 
@@ -138,7 +138,8 @@ class DayTrade extends Printable {
 
     function relatar($encerrar = false){
         $r = [];
-        $lucro = 0;
+        $saldo = 0;
+        $saldoParcial = 0;
         $fecharOperacao = $encerrar ? $this->ultimoPreco : 0;
 
         if($this->usandoTendencias){
@@ -155,6 +156,7 @@ class DayTrade extends Printable {
                 $r[] = "--> $trade->conta ($trade->estrategia): " . pts($trade->saldo());
             }
             $saldos += $trade->saldo();
+            $saldoParcial += $trade->saldoParcial($this->ultimoPreco);
         }
 
         if($this->usandoTendencias){
@@ -173,8 +175,13 @@ class DayTrade extends Printable {
         $this->lucroRs = $saldos * $this->fatorLucro;
 
         $r[] = $this->strDivisor();
-        $r[] = "Resultado: " .pts($this->lucroPts). " pts";
-        $r[] = "Lucro: R$ " . money($this->lucroRs);
+        $r[] = "Resultado:  " .pts($this->lucroPts). " pts";
+        $r[] = "Lucro:      R$ " . money($this->lucroRs);
+
+        if(!$this->usandoTendencias){
+            $r[] = $this->strDivisor(".");
+            $r[] = "Parcial:    R$ " . money($saldoParcial * $this->fatorLucro);
+        }
 
         foreach($this->ordensGeradas as $ordem){
             $r[] = $ordem->report();

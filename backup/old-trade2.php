@@ -1,7 +1,7 @@
 <?php
 
 include_once("lib/Operacao.php");
-include_once("lib/lib2.php");
+include_once("lib/functions.php");
 
 define("C", "C");
 define("V", "V");

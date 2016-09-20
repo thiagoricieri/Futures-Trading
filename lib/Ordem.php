@@ -1,6 +1,6 @@
 <?php
 
-require_once("Print.php");
+require_once("Printable.php");
 
 class Ordem extends Printable {
 
