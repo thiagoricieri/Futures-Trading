@@ -7,7 +7,7 @@ $esquema = new Esquema();
 $esquema
 	->testarGanhos([0.5])
 	->testarPerdas([50])
-	->acumulandoNoMaximo([5])
+	->acumulandoNoMaximo([30])
 	->usarDiretorio(DIR_ARQUIVOS)
 	->usarHistorico(["hoje.txt"])
 	->comTabelas()

@@ -115,14 +115,14 @@ class Trade extends Printable {
     function calcularMultiplo(){
         $multiplo = 0;
         if($this->estrategia == self::ALTA){
-            $boost = $this->forca < -4 ? ceil(abs($this->forca)) : 1;
+            // $boost = $this->forca < -1 ? ceil(abs($this->forca)) : 1;
             $multiplo = $this->tendencia > 0 ?
-                ($this->tendencia * 2) + 1 + $boost : 1;
+                ($this->tendencia * 2) + 1 : 1;
         }
         else {
-            $boost = $this->forca > 4 ? ceil($this->forca) : 1;
+            // $boost = $this->forca > 1 ? ceil($this->forca) : 1;
             $multiplo = $this->tendencia < 0 ?
-                ($this->tendencia * 2) - 1 - $boost : 1;
+                ($this->tendencia * 2) - 1 : 1;
         }
         return $multiplo;
     }
