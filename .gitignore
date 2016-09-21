@@ -1,0 +1,4 @@
+lib/tradingview.paw
+backup/*
+output/*
+.DS_Store
