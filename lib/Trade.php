@@ -19,6 +19,7 @@ class Trade extends Printable {
     var $forca = 0;
     var $fator = 0;
     var $tendencia = 0;
+    var $invertido = false;
     var $historico = [];
 
     // Private
@@ -32,6 +33,11 @@ class Trade extends Printable {
         $this->conta = $conta;
         $this->maxAcumulo = $acumulo;
         $this->alavancagem = $alavancagem;
+    }
+
+    function inverteEstrategia(){
+        $this->estrategia = $this->estrategia == self::ALTA ? self::BAIXA : self::ALTA;
+        $this->invertido = true;
     }
 
     function posicionar($preco, $qtd = 1){
