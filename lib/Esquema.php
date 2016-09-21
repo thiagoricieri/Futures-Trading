@@ -7,7 +7,7 @@ include_once("Trade.php");
 include_once("Ordem.php");
 include_once("includes.php");
 
-class Esquema {
+class Esquema extends Printable {
 
     var $ganhos = [];
     var $perdas = [];
@@ -24,6 +24,9 @@ class Esquema {
 
     var $dirDados = "";
     var $dirOutput = "";
+
+    // hipoteses flags
+    var $tAumentoFinalDia = false;
 
     function gerarArquivos(){
         $this->gerandoCsvs = true;
@@ -156,5 +159,86 @@ class Esquema {
             echo "$lucroPts pts ($media em $dias) = R$ $lucroRs";
             echo "\n\n";
         }
+
+        return $this;
+    }
+
+    function relatarMaiorPrejuizo(){
+        $perda = 0;
+        $dia = "";
+        foreach($this->trades as $dayTrade){
+            if($dayTrade->lucroEmPontos() < $perda){
+                $perda = $dayTrade->lucroEmPontos();
+                $dia = $dayTrade->nome;
+            }
+        }
+
+        echo $this->strDivisor(".");
+        echo $this->pularLinha();
+        echo "Maior Prejuízo: \n$dia com " . pts($perda) . " pts\n";
+        echo $this->pularLinha();
+
+        return $this;
+    }
+
+    function relatarMaiorLucro(){
+        $ganho = 0;
+        $dia = "";
+        foreach($this->trades as $dayTrade){
+            if($dayTrade->lucroEmPontos() > $ganho){
+                $ganho = $dayTrade->lucroEmPontos();
+                $dia = $dayTrade->nome;
+            }
+        }
+
+        echo $this->strDivisor(".");
+        echo $this->pularLinha();
+        echo "Maior Lucro: \n$dia com " . pts($ganho) . " pts\n";
+        echo $this->pularLinha();
+
+        return $this;
+    }
+
+    function hipoteseAumentoFinalDia(){
+        $this->tAumentoFinalDia = true;
+        return $this;
+    }
+
+    function testarHipoteses(){
+        foreach($this->baseDados as $arq){
+        	$outputArq = str_replace(".txt", "", $arq);
+            $historico = lerDados($this->dirDados . $arq);
+            $ultimoPreco = 0;
+            $diffAcumulada = 0;
+
+            foreach($historico as $minuto => $preco){
+                // Aumento ao final do dia
+                if(
+                    $this->tAumentoFinalDia &&
+                    $minuto >= $this->indexEquivalente("16:30") &&
+                    $minuto <= $this->indexEquivalente("17:00") &&
+                    $ultimoPreco > 0
+                ){
+                    $diffAcumulada += $ultimoPreco - $preco;
+                }
+
+                $ultimoPreco = $preco;
+            }
+
+            echo "$arq: $diffAcumulada pts\n";
+        }
+    }
+
+    function horaEquivalente($minuto){
+        $horas = str_pad((string) 9 + floor($minuto * 5 / 60), 2, "0", STR_PAD_LEFT);
+        $minutos = str_pad((string) ($minuto * 5) % 60, 2, "0", STR_PAD_LEFT);
+        return "$horas:$minutos";
+    }
+
+    function indexEquivalente($hora){
+        list($horas, $minutos) = explode(":", $hora);
+        $horas = (int) $horas - 9;
+        $minutos = (int) $minutos;
+        return $horas * 12 + $minutos / 5;
     }
 }

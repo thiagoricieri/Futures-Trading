@@ -5,7 +5,7 @@ class Printable {
     // Config
     var $colnum = 20;
     var $divisor = "-";
-    var $linha = "\n\n";
+    var $linha = "\n";
 
     // Utils
     function strDivisor($d = null){

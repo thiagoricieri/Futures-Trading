@@ -6,10 +6,16 @@ include_once("lib/Esquema.php");
 $esquema = new Esquema();
 $esquema
 	->encerrarOperacao()
+	->gerarArquivos()
 	->testarGanhos([0.5])
 	->testarPerdas([50])
 	->acumulandoNoMaximo([30])
 	->usarDiretorio(DIR_ARQUIVOS)
-	->usarHistorico(["set-20.txt"])
-	->comTabelas()
-	->simular();
+	->usarOutput(DIR_OUTPUT)
+	->usarHistorico($arquivos)
+	->comTendencias()
+	->simular()
+	->relatarMaiorPrejuizo()
+	->relatarMaiorLucro()
+	->hipoteseAumentoFinalDia()
+	->testarHipoteses();
