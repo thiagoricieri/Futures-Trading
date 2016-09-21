@@ -19,6 +19,7 @@ class DayTrade extends Printable {
     var $fatorLucro = 0;
     var $lucroPts = 0;
     var $lucroRs = 0;
+    var $prejuizoPts = 0;
 
     var $gravarFile = "";
     var $nome = "";
@@ -31,6 +32,11 @@ class DayTrade extends Printable {
 
     function comTendencias(){
         $this->usandoTendencias = true;
+        return $this;
+    }
+
+    function perderNoMaximo($p){
+        $this->prejuizoPts = $p;
         return $this;
     }
 
@@ -85,6 +91,7 @@ class DayTrade extends Printable {
             $regra->acumulo = $this->maxContratos;
             $regra->momento = $min;
             $regra->ancoragem = ANCORAGEM;
+            $regra->prejuizoMaximo = $this->prejuizoPts;
             $regra->ultimaOperacao = $this->ultimaOperacao;
 
             foreach ($this->trades as $trade){
@@ -92,7 +99,7 @@ class DayTrade extends Printable {
 
                 if ($this->ultimoPreco > 0){
                     $trade->calcularIndicadores($preco);
-                    if ($trade->continuarOperando($preco)){
+                    if ($trade->continuarOperando($preco, $regra)){
                         $encerradas = $trade->encerrarSe($preco, $regra);
                         $ordem->encerrar($encerradas);
                         $iniciadas = $trade->posicionarSe($preco, $regra);

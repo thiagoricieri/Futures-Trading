@@ -13,6 +13,8 @@ class Esquema extends Printable {
     var $perdas = [];
     var $acumulos = [];
     var $baseDados = [];
+    var $alavancagem = 1;
+    var $prejuizo = 0;
 
     var $trades = [];
 
@@ -27,6 +29,16 @@ class Esquema extends Printable {
 
     // hipoteses flags
     var $tAumentoFinalDia = false;
+
+    function alavancar($a){
+        $this->alavancagem = $a;
+        return $this;
+    }
+
+    function prejuizoMaximo($p){
+        $this->prejuizo = $p;
+        return $this;
+    }
 
     function gerarArquivos(){
         $this->gerandoCsvs = true;
@@ -106,8 +118,9 @@ class Esquema extends Printable {
                             $dayTrade
             					->arriscarNoMaximo($perda)
             					->ganharAoMenos($ganho)
+                                ->perderNoMaximo($this->prejuizo)
             					->sugerirBaseadoEm($dados)
-            					->negociar("WDOV16", $acumulo)
+            					->negociar("WDOV16", $acumulo, $this->alavancagem)
                                 ->lucroPorContrato(10)
             					->arriscarNoMaximo($perda)
             					->ganharAoMenos($ganho)
@@ -125,9 +138,10 @@ class Esquema extends Printable {
                                 ->nomear($arq)
                                 ->arriscarNoMaximo($perda)
                                 ->ganharAoMenos($ganho)
+                                ->perderNoMaximo($this->prejuizo)
                                 ->sugerirBaseadoEm($dados)
                                 ->lucroPorContrato(10)
-                                ->negociar("WDOV16", $acumulo)
+                                ->negociar("WDOV16", $acumulo, $this->alavancagem)
                                 ->arriscarNoMaximo($perda)
                                 ->ganharAoMenos($ganho)
                                 ->sugerirBaseadoEm($dados)

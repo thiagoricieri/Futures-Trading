@@ -8,4 +8,5 @@ class Regra {
     var $momento;
     var $ancoragem;
     var $ultimaOperacao;
+    var $prejuizoMaximo;
 }

@@ -6,10 +6,6 @@ define("V", "V");
 define("CONTRATOS", 1);
 define("DIR_ARQUIVOS", "mini-dolar/");
 define("DIR_OUTPUT", "output/");
-define("MAX_PERDA_DIA_PTS", 400);
-define("MAX_PERDA_DIA_TRIGGER", 1000);
-define("MARGEM", -1);
-define("BOUNDS_TREND", 1);
 define("ANCORAGEM", 1000);
 
 $arquivos = [

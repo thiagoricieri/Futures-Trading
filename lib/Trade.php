@@ -134,7 +134,7 @@ class Trade extends Printable {
     }
 
     function posicionarSe($preco, $regra){
-        $multiplo = $this->calcularMultiplo();
+        $multiplo = $this->calcularMultiplo() * $this->alavancagem;
         $multiplo = abs($multiplo);
         $iniciadas = 0;
 
@@ -177,8 +177,8 @@ class Trade extends Printable {
         $this->forca = ceil($diff / 4);
     }
 
-    function continuarOperando($preco){
-        return $this->saldoParcial($preco) > -MAX_PERDA_DIA_PTS;
+    function continuarOperando($preco, $regra){
+        return $this->saldoParcial($preco) > -($regra->prejuizoMaximo * $this->alavancagem);
     }
 
     function report($fechamento=0) {
