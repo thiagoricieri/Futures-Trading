@@ -4,7 +4,7 @@ define("C", "C");
 define("V", "V");
 
 define("CONTRATOS", 1);
-define("DIR_ARQUIVOS", "ativos/");
+define("DIR_ARQUIVOS", "ativos/wdo/");
 define("DIR_OUTPUT", "output/");
 define("ANCORAGEM", 1000);
 

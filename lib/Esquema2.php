@@ -10,13 +10,7 @@ include_once("includes.php");
 
 class Esquema extends Printable {
 
-    var $ganhos = [];
-    var $perdas = [];
-    var $acumulos = [];
     var $baseDados = [];
-    var $alavancagem = 1;
-    var $prejuizo = 0;
-
     var $ativos = [];
     var $trades = [];
 
@@ -32,18 +26,8 @@ class Esquema extends Printable {
     // hipoteses flags
     var $tAumentoFinalDia = false;
 
-    function alavancar($a){
-        $this->alavancagem = $a;
-        return $this;
-    }
-
     function negociar($ativo){
         $this->ativos[] = $ativo;
-        return $this;
-    }
-
-    function prejuizoMaximo($p){
-        $this->prejuizo = $p;
         return $this;
     }
 
@@ -69,21 +53,6 @@ class Esquema extends Printable {
 
     function encerrarOperacao(){
         $this->encerrar = true;
-        return $this;
-    }
-
-    function testarGanhos($arr){
-        $this->ganhos = $arr;
-        return $this;
-    }
-
-    function testarPerdas($arr){
-        $this->perdas = $arr;
-        return $this;
-    }
-
-    function acumulandoNoMaximo($ac){
-        $this->acumulos = $ac;
         return $this;
     }
 
@@ -114,6 +83,55 @@ class Esquema extends Printable {
         foreach($this->baseDados as $arq){
         	$outputArq = str_replace(".txt", "", $arq);
 
+            foreach($this->ativos as $ativo){
+                foreach($ativo->hipoteses as $hipotese){
+
+                    if($this->usandoTabelas){
+                        $dayTrade
+                            ->arriscarNoMaximo($hipotese->perda)
+                            ->ganharAoMenos($hipotese->ganho)
+                            ->perderNoMaximo($hipotese->prejuizo)
+                            ->sugerirBaseadoEm($dados)
+                            ->negociar("WDOV16", $acumulo, $this->alavancagem)
+                            ->lucroPorContrato(10)
+                            ->arriscarNoMaximo($perda)
+                            ->ganharAoMenos($ganho)
+                            ->sugerirBaseadoEm($dados)
+                            ->investir()
+                            ->relatar($this->encerrar);
+                    }
+
+                    if($this->usandoTendencias){
+                        $outDir = DIR_OUTPUT;
+                        $outDir.= $outputArq;
+                        $outDir.= "-g$ganho-p$perda-a$acumulo";
+
+                        $dayTrade
+                            ->nomear($arq)
+                            ->arriscarNoMaximo($perda)
+                            ->ganharAoMenos($ganho)
+                            ->perderNoMaximo($this->prejuizo)
+                            ->sugerirBaseadoEm($dados)
+                            ->lucroPorContrato(10)
+                            ->negociar("WDOV16", $acumulo, $this->alavancagem)
+                            ->arriscarNoMaximo($perda)
+                            ->ganharAoMenos($ganho)
+                            ->sugerirBaseadoEm($dados)
+                            ->comTendencias()
+                            ->investir()
+                            ->relatar($this->encerrar);
+
+                        if($this->gerandoCsvs){
+                            $dayTrade->gravarResultadoEm($outDir);
+                        }
+                    }
+
+                    $lucroAcumuladoPts += $dayTrade->lucroEmPontos();
+                    $lucroAcumuladoRs += $dayTrade->lucroEmReais();
+                    $this->trades[] = $dayTrade;
+                }
+            }
+
             foreach($this->ganhos as $ganho){
                 foreach($this->perdas as $perda){
                     foreach($this->acumulos as $acumulo){
@@ -121,49 +139,7 @@ class Esquema extends Printable {
                         $dados = lerDados($this->dirDados . $arq);
                         $dayTrade = new DayTrade();
 
-                        if($this->usandoTabelas){
-                            $dayTrade
-            					->arriscarNoMaximo($perda)
-            					->ganharAoMenos($ganho)
-                                ->perderNoMaximo($this->prejuizo)
-            					->sugerirBaseadoEm($dados)
-            					->negociar("WDOV16", $acumulo, $this->alavancagem)
-                                ->lucroPorContrato(10)
-            					->arriscarNoMaximo($perda)
-            					->ganharAoMenos($ganho)
-            					->sugerirBaseadoEm($dados)
-            					->investir()
-            					->relatar($this->encerrar);
-                        }
 
-                        if($this->usandoTendencias){
-                            $outDir = DIR_OUTPUT;
-                            $outDir.= $outputArq;
-                            $outDir.= "-g$ganho-p$perda-a$acumulo";
-
-                            $dayTrade
-                                ->nomear($arq)
-                                ->arriscarNoMaximo($perda)
-                                ->ganharAoMenos($ganho)
-                                ->perderNoMaximo($this->prejuizo)
-                                ->sugerirBaseadoEm($dados)
-                                ->lucroPorContrato(10)
-                                ->negociar("WDOV16", $acumulo, $this->alavancagem)
-                                ->arriscarNoMaximo($perda)
-                                ->ganharAoMenos($ganho)
-                                ->sugerirBaseadoEm($dados)
-                                ->comTendencias()
-                                ->investir()
-                                ->relatar($this->encerrar);
-
-                            if($this->gerandoCsvs){
-                                $dayTrade->gravarResultadoEm($outDir);
-                            }
-                        }
-
-                        $lucroAcumuladoPts += $dayTrade->lucroEmPontos();
-                        $lucroAcumuladoRs += $dayTrade->lucroEmReais();
-                        $this->trades[] = $dayTrade;
                     }
                 }
             }
